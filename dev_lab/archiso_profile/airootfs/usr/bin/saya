@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# SayaOS Package Manager
+# Jail operations need root
+if [[ $EUID -ne 0 ]] && [[ "$1" == "-S"* || "$1" == "-R"* || "$1" == "init-jail" || "$1" == "bootstrap-jail" || "$1" == "exec" || "$1" == "remove-jail" || "$1" == "register"* || "$1" == "purge"* || "$1" == "backup" || "$1" == "restore" ]]; then
+    exec sudo /usr/bin/saya_cli.py "$@"
+else
+    exec /usr/bin/saya_cli.py "$@"
+fi

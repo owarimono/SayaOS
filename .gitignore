@@ -1,0 +1,28 @@
+# Build output — never commit
+build/
+out/
+dist/
+work/
+cache/
+tmp/
+
+# Images
+*.iso
+*.img
+*.qcow2
+*.vmdk
+*.vdi
+*.raw
+
+# Packages
+*.deb
+*.rpm
+*.pkg.tar.zst
+*.pkg.tar.xz
+
+# Env / secrets
+.env
+*.key
+*.pem
+__pycache__/
+*.pyc

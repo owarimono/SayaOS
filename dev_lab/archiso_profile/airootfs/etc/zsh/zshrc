@@ -1,0 +1,24 @@
+# SayaOS Live Environment - ZSH Config
+
+# Aliases
+alias ls='ls --color=auto'
+alias ll='ls -la'
+alias grep='grep --color=auto'
+
+# fastfetch = sayafetch (SayaOS theme)
+alias fastfetch='command fastfetch --config /etc/sayafetch/config.jsonc'
+alias sayafetch='command fastfetch --config /etc/sayafetch/config.jsonc'
+
+# SayaOS Package Manager
+alias saya='saya_cli.py'
+
+# History
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+
+# Prompt
+PROMPT='%F{245}SayaOS%f %F{blue}%~%f %# '
+
+# Welcome
+sayafetch

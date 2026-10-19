@@ -1,0 +1,12 @@
+NAME="SayaOS"
+PRETTY_NAME="SayaOS 1.0"
+ID=sayaos
+ID_LIKE=arch
+BUILD_ID=rolling
+VERSION_ID="1.0"
+VERSION="1.0 (Rolling)"
+ANSI_COLOR="38;2;23;147;209"
+HOME_URL="https://github.com/sayaos"
+BUG_REPORT_URL="https://github.com/sayaos/issues"
+DOCUMENTATION_URL="https://wiki.sayaos.org"
+LOGO=sayaos

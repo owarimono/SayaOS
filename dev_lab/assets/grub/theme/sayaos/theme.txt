@@ -1,0 +1,120 @@
+# SayaOS GRUB2 Theme
+# ==================
+# Dark theme with cyan/blue accent colors
+
+# Desktop image (will be set to a solid dark background)
+desktop-color: "#0c0e14"
+desktop-image: "background.png"
+
+# Title / Branding
+title-text: "SAYAOS"
+title-color: "#00d4ff"
+title-font: "Unifont Regular 20"
+title-spacing: 2
+
+# Terminal colors
+terminal-color: "#c0c0c0"
+terminal-bgcolor: "#0c0e14"
+
+# +--------------------+
+# |  Menu configuration |
+# +--------------------+
++ boot_menu {
+    left = 55%
+    top = 20%
+    width = 40%
+    height = 60%
+    
+    item_color = "#c0c0c0"
+    selected_item_color = "#00d4ff"
+    item_font = "Unifont Regular 14"
+    selected_item_font = "Unifont Regular 14 bold"
+    item_spacing = 4
+    item_height = 32
+    item_padding = 4
+    
+    selected_item_pixmap_size = 0
+    
+    # Menu box styling
+    menu_pixmap_style = "menu_box"
+}
+
+# +--------------------+
+# |  Branding text     |
+# +--------------------+
++ label {
+    left = 3%
+    top = 5%
+    width = 50%
+    height = 15%
+    id = "branding"
+    text = "███████╗ █████╗ ██╗   ██╗ █████╗  ██████╗ ███████╗
+██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗██╔═══██╗██╔════╝
+███████╗███████║ ╚████╔╝ ███████║██║   ██║███████╗
+╚════██║██╔══██║  ╚██╔╝  ██╔══██║██║   ██║╚════██║
+███████║██║  ██║   ██║   ██║  ██║╚██████╔╝███████║
+╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝"
+    font = "Fixed Regular 10"
+    color = "#00d4ff"
+    align = "center"
+}
+
+# +--------------------+
+# |  Version info      |
+# +--------------------+
++ label {
+    left = 3%
+    top = 45%
+    width = 50%
+    height = 5%
+    id = "version"
+    text = "v1.0 — Rolling Release"
+    font = "Fixed Regular 10"
+    color = "#666666"
+    align = "center"
+}
+
+# +--------------------+
+# |  Description       |
+# +--------------------+
++ label {
+    left = 3%
+    top = 52%
+    width = 50%
+    height = 5%
+    id = "description"
+    text = "Arch-based • Isolation-first • Secure"
+    font = "Fixed Regular 10"
+    color = "#444444"
+    align = "center"
+}
+
+# +--------------------+
+# |  Bottom help       |
+# +--------------------+
++ label {
+    left = 0%
+    bottom = 2%
+    width = 100%
+    height = 5%
+    id = "help"
+    text = "[↑↓] Select  [Enter] Boot  [e] Edit  [c] Command Line  [f] Firmware Setup"
+    font = "Fixed Regular 10"
+    color = "#555555"
+    align = "center"
+}
+
+# +--------------------+
+# |  Footer / Credits  |
+# +--------------------+
++ label {
+    right = 2%
+    bottom = 2%
+    width = 30%
+    height = 3%
+    id = "footer"
+    text = "SayaOS Project"
+    font = "Fixed Regular 10"
+    color = "#333333"
+    align = "right"
+}

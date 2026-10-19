@@ -1,0 +1,32 @@
+base
+linux
+mkinitcpio
+mkinitcpio-archiso
+mkinitcpio-nfs-utils
+nbd
+pv
+# Network (exact releng)
+dhcpcd
+iwd
+linux-firmware
+linux-firmware-marvell
+modemmanager
+sof-firmware
+wireless-regdb
+wireless_tools
+wpa_supplicant
+# System
+nano
+vim
+bash-completion
+dosfstools
+ntfs-3g
+zsh
+zsh-completions
+fastfetch
+git
+base-devel
+sudo
+syslinux
+memtest86+
+python

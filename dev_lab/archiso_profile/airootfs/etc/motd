@@ -1,0 +1,14 @@
+  ════════════════════════════════════════
+            SayaOS v1.0
+   Isolated Package Management
+  ════════════════════════════════════════
+
+  ⚠ Change default passwords:
+    $ passwd
+    $ sudo passwd root
+
+  Quick start:
+    saya -S <package>          # Install
+    saya -S -kali <package>    # Install from Kali
+    saya -Q                    # Query
+    sayafetch                  # System info

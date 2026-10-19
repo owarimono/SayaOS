@@ -1,0 +1,26 @@
+[38;5;238m.;.[0m
+[38;5;239m                 .xXd.[0m
+[38;5;240m                 lKXO:.[0m
+[38;5;241m                ,0NXOl'[0m
+[38;5;243m    ;c'.   .';cddddolc:,.   .'.;[0m
+[38;5;244m    'dkOxc;cxkkkkkxl:::::;,lkx:.[0m
+[38;5;245m     ,ld0K0xlxKOc'. .;c:;:clc,[0m
+[38;5;247m     .;lldOklk0:     .;ccccc'[0m
+[38;5;248m      .::;ccx0l.      'ccccl;[0m
+[38;5;249m      lOxxk0Kk'        ;llloo.[0m
+[38;5;251m     ,KMMMMMXl.        'loloxc[0m
+[38;5;252m    .ckOkO0XO;         .cdooko.[0m
+[38;5;253m.:dkOKXXKxlkO;         .lkkk0d;ll,.[0m
+[38;5;255m.:looddddl:dk;         .oOOOKx,,;'.[0m
+[38;5;255m    .,::::lxk;         'ONXXNx.[0m
+[38;5;253m     .:cloodxl.        lNWWWXc[0m
+[38;5;252m      'clolcdd'       .dKKKXO'[0m
+[38;5;251m     .c0NNk::dl.      ;OK0K0c.[0m
+[38;5;249m    .oNNKkdc,cx;     .okkO0d::.[0m
+[38;5;248m    lXKkoc:;;:od;.  .cddxko'.::.[0m
+[38;5;247m   'xo;'...;ccclooc;coddo,[0m
+[38;5;245m    .      ..',;::cccc:'.[0m
+[38;5;244m               :kOxl:.[0m
+[38;5;243m               .xNKd;.[0m
+[38;5;241m                ;xkl.[0m
+[38;5;240m                 .,.[0m

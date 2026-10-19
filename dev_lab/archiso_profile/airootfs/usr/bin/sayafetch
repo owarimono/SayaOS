@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# sayafetch - SayaOS system info
+command fastfetch --config /etc/sayafetch/config.jsonc "$@"
