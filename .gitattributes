@@ -1,0 +1,6 @@
+# build/lab scripts
+dev_lab/** linguist-language=Shell
+
+# real C sources, once they exist
+*.c linguist-language=C
+*.h linguist-language=C
