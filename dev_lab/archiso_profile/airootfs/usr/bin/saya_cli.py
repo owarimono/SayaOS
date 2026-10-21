@@ -107,8 +107,12 @@ def _repair_db():
 def is_mounted(target_path):
     if not os.path.exists("/proc/mounts"):
         return False
+    target = os.path.realpath(target_path)
     with open("/proc/mounts", "r") as f:
-        return any(target_path in line for line in f)
+        return any(
+            len(parts) > 1 and os.path.realpath(parts[1]) == target
+            for parts in (line.split() for line in f)
+        )
 
 def mount_jail_binds(jail_name, db):
     jail_info = db["jails"].get(jail_name)
@@ -446,13 +450,11 @@ BINARY = "{binary_name}"
 
 # Ensure jail mounts are active
 MOUNTS = ["/dev", "/dev/pts", "/proc", "/sys"]
+mounted = {{p[1] for p in (line.split() for line in open("/proc/mounts")) if len(p) > 1}}
 for m in MOUNTS:
     target = os.path.join(JAIL_PATH, m.lstrip("/"))
-    if os.path.exists(target) and not any(m in line for line in open("/proc/mounts").readlines()):
-        try:
-            subprocess.run(["mount", "--bind", m, target], capture_output=True)
-        except Exception:
-            pass
+    if os.path.exists(target) and target not in mounted:
+        subprocess.run(["mount", "--bind", m, target], capture_output=True)
 
 cmd = ["chroot", JAIL_PATH, f"/usr/bin/{{BINARY}}"] + sys.argv[1:]
 try:
@@ -731,8 +733,13 @@ def _parse_pacman_flags(argv):
 
     # Handle -Syu (sync + refresh + upgrade)
     if 'S' in flags and 'y' in flags and 'u' in flags:
-        ok("Syncing repositories...")
-        cmd_update_jails("default")
+        db = load_db()
+        if not db["jails"]:
+            info("No jails to update.")
+            return True
+        for jail_name in list(db["jails"]):
+            ok(f"Updating jail '{jail_name}'...")
+            cmd_update_jail(jail_name)
         return True
 
     # Handle -S (sync/install)

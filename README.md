@@ -167,12 +167,8 @@ layer is not finished; the defects below are confirmed against the committed cod
 
 | Defect | Effect |
 |---|---|
-| `cmd_update_jails` undefined (`saya_cli.py:735`) | `saya -Syu` terminates with `NameError` |
 | `-S <pkg>` does not install the named package | Creates a jail named after the package and bootstraps a bare base |
 | `-kali` / `-debian` / `-ubuntu` parsed then discarded | Flags reach no code path; `parrot` and `blackarch` are not valid types |
-| `is_mounted()` substring-matches `/proc/mounts` | A jail whose name prefixes another jail's path is reported as mounted |
-| Bootstrap dependencies absent from `packages.x86_64` | `arch-install-scripts`, `debootstrap`, `debian-archive-keyring` must be added before bootstrapping works on the live image |
-| `sayaos-setup.sh` never invoked | archiso executes `airootfs/root/customize_airootfs.sh`, which does not exist |
 | `dev_lab/assets/` not wired to the profile | GRUB theme, its pixmaps and the themed menu never reach the ISO |
 
 The explicit verbs listed above are the tested path; prefer them over the
@@ -181,8 +177,8 @@ The explicit verbs listed above are the tested path; prefer them over the
 ## Roadmap
 
 - [ ] Implement `-S` installation; honour or remove the distro flags
-- [ ] Fix `-Syu` and replace substring mount detection with exact path comparison
-- [ ] Ship bootstrap dependencies in the live image
+- [x] Fix `-Syu` and replace substring mount detection with exact path comparison
+- [x] Ship bootstrap dependencies in the live image
 - [ ] Add `build-iso.sh` that stages `dev_lab/assets/` into the profile
 - [ ] Decide whether shims keep root-in-chroot semantics or move to `unshare`
 

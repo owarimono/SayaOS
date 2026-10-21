@@ -30,3 +30,6 @@ sudo
 syslinux
 memtest86+
 python
+arch-install-scripts
+debootstrap
+debian-archive-keyring
