@@ -12,8 +12,8 @@
   <img alt="init: systemd" src="https://img.shields.io/badge/init-systemd-B4B4B4?style=for-the-badge&labelColor=111111&logo=systemd&logoColor=111111">
   <img alt="arch: x86_64" src="https://img.shields.io/badge/Arch-x86__64-919191?style=for-the-badge&labelColor=111111&logo=linux&logoColor=111111">
   <img alt="Boot: BIOS + UEFI" src="https://img.shields.io/badge/Boot-BIOS_+_UEFI-6E6E6E?style=for-the-badge&labelColor=111111">
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-4A4A4A?style=for-the-badge&labelColor=111111"></a>
-  <a href="#status"><img alt="Status: experimental" src="https://img.shields.io/badge/Status-experimental-262626?style=for-the-badge&labelColor=111111"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-2EA44F?style=for-the-badge&labelColor=111111"></a>
+  <a href="#status"><img alt="Status: experimental" src="https://img.shields.io/badge/Status-experimental-E3A008?style=for-the-badge&labelColor=111111"></a>
 </p>
 
 </div>
