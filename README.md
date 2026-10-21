@@ -1,115 +1,186 @@
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/owarimono/SayaOS/main/SayaOS-logo.png" alt="SayaOS logo" width="180">
+
 # SayaOS
 
-An Arch-based live ISO built around one idea: install software from Arch, Debian,
-Ubuntu or Kali into an isolated chroot jail under `/var/saya/jails`, then expose
-each binary on the host `PATH` through a generated wrapper — without ever merging
-those packages into the host filesystem. Delete the jail directory, the software
-is gone.
+**An Arch-based live system where foreign packages live in jails, not in your filesystem.**
 
-There is no installer, no desktop and no custom repository. This is a stock
-archiso profile plus one Python tool.
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Base](https://img.shields.io/badge/base-Arch%20Linux-1793d1.svg)](https://archlinux.org)
+[![Boot](https://img.shields.io/badge/boot-BIOS%20%2B%20UEFI-informational.svg)](#building-the-iso)
+[![Status](https://img.shields.io/badge/status-experimental-orange.svg)](#status)
 
-**Status: experimental.** Two documented CLI verbs are broken as committed — see
-[Known issues](#known-issues) before you try anything.
+</div>
 
-## Layout
+---
+
+SayaOS ships one tool worth talking about: **`saya`**, a package manager that
+installs software from Arch, Debian, Ubuntu or Kali into an isolated chroot jail
+under `/var/saya/jails` and exposes each binary on the host `PATH` as a generated
+wrapper. Nothing foreign is ever merged into the host root filesystem — delete
+the jail directory and the software is gone, with no leftovers to hunt.
+
+Everything else is deliberately plain: a stock `archiso` profile with branding, a
+console-only live session, and no installer. The interesting part is the
+isolation model, not the distro wrapped around it.
+
+## Why jails
+
+A second package manager on a single system is a known way to break it: `apt`
+and `pacman` write to the same `/usr`, file conflicts are silent, and removing
+the interloper risks taking the base system with it.
+
+SayaOS takes the position that a foreign distro's tooling should stay in its own
+directory tree, with a thin shim on `PATH` so it still behaves like a normal
+command:
+
+- **Host purity** — `/usr` belongs to `pacman`. A jail never writes to it.
+- **Atomic removal** — one jail, one directory. `rm -rf` is a valid uninstall.
+- **Per-jail ceilings** — cgroup v2 `memory.max` / `cpu.max` per jail.
+- **Zero friction** — a wrapped binary is a real executable at `/usr/bin/<name>`,
+  so `sudo`, scripts, `xargs` and shell completion keep working.
+
+## How it works
+
+State is a single JSON ledger, `/etc/saya/pkg_db.json` (`version`, `jails`,
+`packages`, `aliases`). Every write is preceded by a timestamped copy into
+`/etc/saya/backups/`, newest ten kept; a corrupt ledger falls back to the newest
+parseable backup.
+
+A jail is a chroot tree at `/var/saya/jails/<name>`. Entering it binds `/dev`,
+`/dev/pts`, `/proc` and `/sys` from the host, copies `/etc/resolv.conf` in, and
+`chroot`s. Optional cgroup v2 limits are applied at `/sys/fs/cgroup/sayaos-<name>`.
+
+> **Isolation boundary:** filesystem plus cgroup, *not* namespaces. A jail shares
+> the host network, PID and IPC namespaces, and commands run as root inside it.
+> This contains package sprawl. It does not contain an attacker.
+
+`register-pkg` writes `/usr/bin/<binary>` — a small script that bind-mounts the
+pseudo-filesystems if missing, `chroot`s into the jail, and forwards arguments.
+`purge-pkg` deletes a host binary only if its content still mentions `SayaOS` or
+`Ghost Wrapper`, so it cannot eat a real system binary.
+
+```
+                   ┌──────────────────── host ────────────────────┐
+  saya -S …  ───►  │  /usr/bin/saya           /usr/bin/<shim>      │
+                   │      │                        │              │
+                   │      ▼                        ▼              │
+                   │  /etc/saya/pkg_db.json   mount --bind +      │
+                   │  /etc/saya/backups/      chroot + exec       │
+                   │      │                        │              │
+                   └──────┼────────────────────────┼──────────────┘
+                          │                        │
+                  ┌───────▼────────┐      ┌────────▼───────────┐
+                  │ ledger (JSON)  │      │ /var/saya/jails/…  │
+                  │ jails          │      │ arch · debian ·    │
+                  │ packages       │      │ ubuntu · kali      │
+                  │ aliases        │      └────────────────────┘
+                  └────────────────┘
+```
+
+## Quick start
+
+Boot the ISO (see [building](#building-the-iso)), then:
+
+```console
+# saya init-jail tools arch          # create a jailed Arch tree
+# saya bootstrap-jail tools          # pacstrap a base into it
+# saya exec tools uname -a           # run one command inside
+# saya register-pkg nmap tools       # expose /usr/bin/nmap on the host
+$ nmap --version                     # runs from inside the jail
+# saya purge-pkg nmap                # drop the shim
+# saya remove-jail tools             # drop everything
+```
+
+Read-only verbs need no root. Mutating verbs re-exec through `sudo` via the
+`/usr/bin/saya` bash wrapper.
+
+## CLI reference
+
+| Verb | Root | Description |
+|---|---|---|
+| `init-jail <name> <type>` | yes | Create a jail — types `arch`, `debian`, `ubuntu`, `kali`; options `--mem <MB>`, `--cpu <%>` |
+| `bootstrap-jail <name>` | yes | Install the base OS into the jail (`pacstrap` / `debootstrap`) |
+| `update-jail <name>` | yes | Upgrade all packages in one jail |
+| `exec <name> [cmd…]` | yes | Run a command inside the jail |
+| `remove-jail <name> [--force]` | yes | Remove a jail and its registry entries |
+| `register-pkg <binary> <jail>` | yes | Write a host shim for one jailed binary |
+| `register-multi <jail> <bin…>` | yes | Same, for several binaries |
+| `purge-pkg <binary>` | yes | Remove a shim (content-guarded) |
+| `list-jails`, `list-pkgs`, `info` | no | Inspect the ledger |
+| `backup`, `restore <file>` | yes | Manual ledger snapshot / rollback |
+| `-S`, `-R`, `-Q`, `-L`, `-Syu` | — | Pacman-style aliases — partially implemented, see [Status](#status) |
+
+## Project layout
 
 ```
 dev_lab/
-  archiso_profile/            archiso profile (the bootable part)
+  archiso_profile/            archiso profile — the bootable half
     profiledef.sh             name, label, bootmodes, squashfs options
     packages.x86_64           30 packages in the live image
     pacman.conf               stock Arch core + extra
-    grub/ efiboot/ syslinux/  BIOS + UEFI boot menus
+    grub/ efiboot/ syslinux/  BIOS and UEFI boot menus
     airootfs/
-      usr/bin/saya_cli.py     the whole package manager, ~855 lines, stdlib only
-      usr/bin/saya            sudo-elevating bash wrapper for mutating verbs
+      usr/bin/saya_cli.py     the entire package manager, stdlib only
+      usr/bin/saya            sudo-elevating wrapper for mutating verbs
       usr/bin/sayafetch       fastfetch with the SayaOS config
       etc/saya/pkg_db.json    initial empty ledger
-      etc/sayafetch/          live-session fastfetch config + logo
-      etc/zsh/zshrc           root autologin shell, runs sayafetch
+      etc/sayafetch/          live-session fastfetch config and logo
+      etc/zsh/zshrc           root autologin shell, runs sayafetch on start
       etc/systemd/            networkd, iwd, resolved, volatile journal, no suspend
   assets/                     branding sources: themed grub.cfg, GRUB theme,
                               fastfetch config and ASCII logo
 ```
 
-## How it works
+Python 3 only — no third-party imports anywhere in the tool.
 
-State lives in a single JSON ledger, `/etc/saya/pkg_db.json`, with four keys:
-`version`, `jails`, `packages`, `aliases`. Every write is preceded by a
-timestamped copy into `/etc/saya/backups/` (newest 10 kept); a corrupt ledger
-falls back to the newest parseable backup.
+## Building the ISO
 
-A jail is a chroot tree at `/var/saya/jails/<name>`. Entering it binds `/dev`,
-`/dev/pts`, `/proc` and `/sys` from the host, copies `/etc/resolv.conf` in, and
-`chroot`s. Optional cgroup v2 limits set `memory.max` and `cpu.max`. Isolation is
-filesystem-level plus cgroup — **not namespaces** — so a jail shares the host's
-network, PID and IPC namespaces and commands run as root inside it. This
-contains package sprawl, not attackers.
+Needs `archiso` on the build host:
 
-`register-pkg` writes `/usr/bin/<binary>`, a small script that re-binds the
-pseudo-filesystems if needed and `chroot`s into the jail to run the real binary,
-forwarding arguments. `purge-pkg` only deletes a host binary whose content still
-mentions `SayaOS` / `Ghost Wrapper`, so it cannot eat a real system binary.
-
-Read-only verbs (`list-jails`, `list-pkgs`, `info`, `-Q`, `-L`) work without
-root. Mutating verbs re-exec under `sudo` through `/usr/bin/saya`.
-
-## Usage
-
-```
-sudo saya init-jail myjail arch        # create a jail (types: arch, debian, kali, ubuntu)
-sudo saya bootstrap-jail myjail        # pacstrap a base into it
-sudo saya exec myjail uname -a         # run one command inside
-sudo saya register-pkg nmap myjail     # expose /usr/bin/nmap on the host
-sudo saya register-multi myjail bin1 bin2
-sudo saya purge-pkg nmap               # remove the wrapper
-sudo saya remove-jail myjail
-saya list-jails | saya list-pkgs | saya info
-sudo saya backup | sudo saya restore <file>
-```
-
-Pacman-style flags are parsed too: `-S`, `-R`, `-Q`, `-L`, `-Syu`, plus
-`-kali` / `-debian` / `-ubuntu` distro tags. Read the caveats below first — most
-of those paths are not finished.
-
-## Build
-
-Requires `archiso` (which provides `mkarchiso`) on the build host:
-
-```bash
+```sh
 mkarchiso -v -w ~/sayaos-work -o ./out dev_lab/archiso_profile
 ```
 
-That is the whole build — there is no build script in the repo, and the branding
-under `dev_lab/assets/` is **not** copied into the profile automatically, so a
-build uses the plain GRUB menu and no theme.
+Then boot it:
 
-Boot the result in QEMU:
-
-```bash
+```sh
 qemu-system-x86_64 -m 2048 -cdrom out/sayaos-*.iso
 ```
 
-Logging in lands you in zsh as root; `sayafetch` runs on start. `passwd` if you
-are going to do anything real.
+There is no build script in the repo, and `dev_lab/assets/` is **not** copied into
+the profile automatically — a build uses the plain GRUB menu and no theme. You
+land in `zsh` as root and `sayafetch` runs on start; set a password with `passwd`
+before doing anything real.
 
-## Known issues
+## Status
 
-| Problem | Effect |
+Experimental. The jail lifecycle — create, bootstrap, exec, register, purge,
+remove, list, backup/restore — is implemented, and the ledger is defensive. The
+pacman-style compatibility layer is not finished:
+
+| Issue | Effect |
 |---|---|
-| `cmd_update_jails` is undefined (`saya_cli.py:735`) | `saya -Syu` dies with `NameError` |
-| `-S <pkg>` never installs the package | It creates a *jail named after the package* and bootstraps a bare Arch base, then reports it "installed" |
-| `-kali` / `-debian` / `-ubuntu` are parsed and discarded | The flags in the usage text reach nothing; `parrot` and `blackarch` are not even valid types |
-| `is_mounted()` substring-scans `/proc/mounts` | A jail whose name prefixes another jail's path reads as "mounted" |
-| `bootstrap-jail` needs `arch-install-scripts`, `debootstrap`, `debian-archive-keyring` | None are in `packages.x86_64`, so bootstrapping fails on the live image |
-| `sayaos-setup.sh` never runs | archiso ignores it (it wants `airootfs/root/customize_airootfs.sh`) |
-| `dev_lab/assets/` is not wired into the profile | The GRUB theme, its pixmaps and the themed menu never reach the ISO |
+| `cmd_update_jails` undefined (`saya_cli.py:735`) | `saya -Syu` exits with `NameError` |
+| `-S <pkg>` does not install the package | It creates a jail *named after the package* and bootstraps a bare base |
+| `-kali` / `-debian` / `-ubuntu` parsed then discarded | The flags reach nothing; `parrot` and `blackarch` are not valid types |
+| `is_mounted()` substring-matches `/proc/mounts` | A jail whose name prefixes another jail's path reads as mounted |
+| Bootstrap deps missing from `packages.x86_64` | Needs `arch-install-scripts`, `debootstrap`, `debian-archive-keyring` |
+| `sayaos-setup.sh` is never invoked | archiso wants `airootfs/root/customize_airootfs.sh` |
+| `dev_lab/assets/` not wired into the profile | The GRUB theme, its pixmaps and the themed menu never reach the ISO |
 
-Workable today: `init-jail` + `bootstrap-jail` on a host that already has the
-bootstrap tools, `exec`, `register-pkg`, `purge-pkg`, `remove-jail`, the read-only
-listing verbs, and ledger backup/restore.
+Prefer the explicit verbs above — that is the tested path.
+
+## Roadmap
+
+- [ ] Make `-S` install for real, and either honour or drop the distro flags
+- [ ] Fix `-Syu` and the mount-detection check
+- [ ] Ship the bootstrap dependencies in the live image
+- [ ] Add `build-iso.sh` that wires `dev_lab/assets/` into the profile
+- [ ] Decide whether ghost wrappers stay root-in-chroot or move to `unshare`
 
 ## License
 
-See [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE). SayaOS is an independent remaster, not an official
+Arch Linux project.
